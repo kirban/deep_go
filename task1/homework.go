@@ -2,21 +2,18 @@ package main
 
 import (
 	"fmt"
-	"math"
+	"unsafe"
 )
 
 func ToLittleEndian(number uint32) uint32 {
-	const base = 1 << 8
+	inputPtr := unsafe.Pointer(&number)
+	inputSize := int(unsafe.Sizeof(number))
 
 	var result uint32
+	outPtr := unsafe.Pointer(&result)
 
-	mod := number % base
-	div := number / base
-
-	for i := 4; i >= 0; i-- {
-		result += mod * uint32(math.Pow(float64(base), float64(i-1)))
-		mod = div % base
-		div = div / base
+	for i := 0; i < inputSize; i++ {
+		*(*int8)(unsafe.Add(outPtr, inputSize-i-1)) = *(*int8)(unsafe.Add(inputPtr, i))
 	}
 
 	return result
