@@ -13,13 +13,12 @@ type CircularQueue struct {
 
 // NewCircularQueue - создать очередь с определенным размером буффера
 func NewCircularQueue(size int) CircularQueue {
-	cq := CircularQueue{
+	return CircularQueue{
+		count:  0,
 		values: make([]int, size),
 		front:  -1,
 		rear:   -1,
 	}
-
-	return cq
 }
 
 // Push - добавить значение в конец очереди (false, если очередь заполнена)
