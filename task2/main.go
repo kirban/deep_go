@@ -16,7 +16,7 @@ func NewCircularQueue(size int) CircularQueue {
 	return CircularQueue{
 		count:  0,
 		values: make([]int, size),
-		front:  -1,
+		front:  0,
 		rear:   -1,
 	}
 }
@@ -25,10 +25,6 @@ func NewCircularQueue(size int) CircularQueue {
 func (q *CircularQueue) Push(value int) bool {
 	if q.Full() {
 		return false
-	}
-
-	if q.rear == -1 {
-		q.front = 0
 	}
 
 	q.rear = (q.rear + 1) % cap(q.values)
