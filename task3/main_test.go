@@ -1,11 +1,10 @@
 package main
 
 import (
+	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
 	"unsafe"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestCOWBuffer(t *testing.T) {
@@ -15,6 +14,9 @@ func TestCOWBuffer(t *testing.T) {
 
 	copy1 := buffer.Clone()
 	copy2 := buffer.Clone()
+
+	assert.NotEqual(t, unsafe.Pointer(&buffer), unsafe.Pointer(&copy1))
+	assert.NotEqual(t, unsafe.Pointer(&copy1), unsafe.Pointer(&copy2))
 
 	assert.Equal(t, unsafe.SliceData(data), unsafe.SliceData(buffer.data))
 	assert.Equal(t, unsafe.SliceData(buffer.data), unsafe.SliceData(copy1.data))
@@ -45,4 +47,42 @@ func TestCOWBuffer(t *testing.T) {
 	assert.Equal(t, unsafe.SliceData(previous), unsafe.SliceData(current))
 
 	copy2.Close()
+}
+
+func TestCOWBuffer_CloseClose(t *testing.T) {
+	data := []byte{'a', 'b', 'c', 'd'}
+	buffer := NewCOWBuffer(data)
+
+	assert.NotNil(t, buffer.refs)
+	assert.NotNil(t, buffer.data)
+
+	buffer.Close()
+
+	assert.Nil(t, buffer.refs)
+	assert.Nil(t, buffer.data)
+
+	assert.NotPanics(t, func() {
+		buffer.Close()
+	})
+
+	assert.Nil(t, buffer.refs)
+	assert.Nil(t, buffer.data)
+}
+
+func TestCOWBuffer_NilSafety(t *testing.T) {
+	var b COWBuffer
+
+	assert.Equal(t, "", b.String())
+
+	assert.False(t, b.Update(1, 'a'))
+	assert.False(t, b.Update(0, 'b'))
+	assert.False(t, b.Update(-1, 'c'))
+
+	assert.NotPanics(t, func() {
+		b.Close()
+	})
+
+	assert.NotPanics(t, func() {
+		assert.Nil(t, b.Clone())
+	})
 }
