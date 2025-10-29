@@ -2,7 +2,6 @@ package main
 
 import (
 	"cmp"
-	"fmt"
 )
 
 /**
@@ -192,41 +191,4 @@ func (m *OrderedMap[K, V]) ForEach(f func(K, V)) {
 	}
 }
 
-func main() {
-	n := NewOrderedMap[int, int]()
-
-	keys := []int{33, 5, 3, 22, 1, 4, 11, 24}
-
-	for i, key := range keys {
-		n.Insert(key, i)
-	}
-
-	n.Erase(5)
-
-	fmt.Printf("node: %+v addr: %p\n", n.root.left, n.root.left)              //11
-	fmt.Printf("node2: %+v addr: %p\n", n.root.left.right, n.root.left.right) //11
-
-	// ---
-
-	//n.Insert(33, 0)
-	//
-	//n.Insert(39, 1)
-	//
-	//n.Insert(34, 2)
-	//n.Insert(42, 2)
-	//
-	//n.Insert(40, 3)
-	//n.Insert(61, 3)
-	//
-	//n.Erase(39)
-	//
-	//fmt.Println(n.Size())
-	//fmt.Printf("root: %+v addr: %p\n", n.root, n.root)              //33
-	//fmt.Printf("right: %+v addr: %p\n", n.root.right, n.root.right) //40
-	//
-	//fmt.Printf("right: %+v addr: %p\t\t", n.root.right.left, n.root.right.left) //32
-	//fmt.Printf("right: %+v addr: %p\n", n.root.right.right, n.root.right.right) //42
-	//
-	//fmt.Printf("right: %+v addr: %p\n", n.root.right.right.right, n.root.right.right.right) //61
-
-}
+func main() {}
