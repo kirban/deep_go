@@ -5,8 +5,13 @@ import "fmt"
 // Map принимает функцию action и срез данных data.
 // Функция Map должна применить функцию action к каждому элементу среза data и вернуть новый срез с результатами
 func Map(data []int, action func(int) int) []int {
-	// need to implement
-	return nil
+	result := make([]int, len(data))
+
+	for i := 0; i < len(data); i++ {
+		result[i] = action(data[i])
+	}
+
+	return result
 }
 
 // Filter принимает функцию action и срез данных data.
