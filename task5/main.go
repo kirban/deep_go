@@ -31,8 +31,13 @@ func Filter(data []int, action func(int) bool) []int {
 // Reduce принимает функцию action (функцию двух аргументов), срез данных data и начальное значение initial.
 // Функция Reduce должна применить функцию action к каждому элементу data и начальному значению initial, накапливая результат.
 func Reduce(data []int, initial int, action func(int, int) int) int {
-	// need to implement
-	return 0
+	result := initial
+
+	for i := 0; i < len(data); i++ {
+		result = action(result, data[i])
+	}
+
+	return result
 }
 
 func main() {
@@ -46,19 +51,19 @@ func main() {
 	//
 	//fmt.Println("---")
 
-	resultFilter := Filter(sl, func(el int) bool {
-		return el%2 == 0
-
-	})
-	fmt.Printf("resultFilter: %d\n", resultFilter)
-
-	fmt.Println("---")
+	//resultFilter := Filter(sl, func(el int) bool {
+	//	return el%2 == 0
 	//
-	//reduceResult := Reduce(sl, 0, func(acc int, curr int) int {
-	//	return acc + curr
 	//})
-	//
-	//fmt.Printf("reduceResult: %d\n", reduceResult)
+	//fmt.Printf("resultFilter: %d\n", resultFilter)
 	//
 	//fmt.Println("---")
+
+	reduceResult := Reduce(sl, 0, func(acc int, curr int) int {
+		return acc + curr
+	})
+
+	fmt.Printf("reduceResult: %d\n", reduceResult)
+
+	fmt.Println("---")
 }
