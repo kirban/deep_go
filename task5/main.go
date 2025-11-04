@@ -5,7 +5,7 @@ import "fmt"
 // Map принимает функцию action и срез данных data.
 // Функция Map должна применить функцию action к каждому элементу среза data и вернуть новый срез с результатами
 func Map(data []int, action func(int) int) []int {
-	if data == nil {
+	if data == nil || action == nil {
 		return nil
 	}
 
@@ -25,7 +25,7 @@ func Map(data []int, action func(int) int) []int {
 // Filter принимает функцию action и срез данных data.
 // Функция Filter должна вернуть новый срез, содержащий только те элементы data, для которых функция action возвращает true
 func Filter(data []int, action func(int) bool) []int {
-	if data == nil {
+	if data == nil || action == nil {
 		return nil
 	}
 
@@ -49,6 +49,10 @@ func Filter(data []int, action func(int) bool) []int {
 func Reduce(data []int, initial int, action func(int, int) int) int {
 	result := initial
 
+	if data == nil || action == nil {
+		return result
+	}
+
 	for i := 0; i < len(data); i++ {
 		result = action(result, data[i])
 	}
@@ -59,21 +63,21 @@ func Reduce(data []int, initial int, action func(int, int) int) int {
 func main() {
 	sl := []int{1, 2, 3, 4, 5, 6}
 
-	//resultMap := Map(sl, func(el int) int {
-	//	fmt.Printf("el: %d\n", el)
-	//	return el * 2
-	//})
-	//fmt.Println(resultMap)
-	//
-	//fmt.Println("---")
+	resultMap := Map(sl, func(el int) int {
+		fmt.Printf("el: %d\n", el)
+		return el * 2
+	})
+	fmt.Println(resultMap)
 
-	//resultFilter := Filter(sl, func(el int) bool {
-	//	return el%2 == 0
-	//
-	//})
-	//fmt.Printf("resultFilter: %d\n", resultFilter)
-	//
-	//fmt.Println("---")
+	fmt.Println("---")
+
+	resultFilter := Filter(sl, func(el int) bool {
+		return el%2 == 0
+
+	})
+	fmt.Printf("resultFilter: %d\n", resultFilter)
+
+	fmt.Println("---")
 
 	reduceResult := Reduce(sl, 0, func(acc int, curr int) int {
 		return acc + curr
