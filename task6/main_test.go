@@ -39,10 +39,10 @@ func TestGamePerson(t *testing.T) {
 
 	person := NewGamePerson(options...)
 	assert.Equal(t, name, person.Name())
-	assert.Equal(t, x, person.X())
-	assert.Equal(t, y, person.Y())
+	assert.Equal(t, MinCoord, person.X())
+	assert.Equal(t, MaxCoord, person.Y())
 	assert.Equal(t, z, person.Z())
-	assert.Equal(t, gold, person.Gold())
+	assert.Equal(t, MaxGold, person.Gold())
 	assert.Equal(t, mana, person.Mana())
 	assert.Equal(t, health, person.Health())
 	assert.Equal(t, respect, person.Respect())

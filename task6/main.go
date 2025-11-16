@@ -1,23 +1,86 @@
 package main
 
 import (
-	"fmt"
 	"unsafe"
+)
+
+const (
+	BuilderGamePersonType = iota
+	BlacksmithGamePersonType
+	WarriorGamePersonType
+)
+const DefaultPersonType = WarriorGamePersonType
+
+const (
+	HasHouseFlag  uint8 = 1 << iota // 001
+	HasGunFlag                      // 010
+	HasFamilyFlag                   // 100
+)
+
+const (
+	RespectOffset uint8 = 4 * iota
+	StrengthOffset
+	ExperienceOffset
+	LevelOffset
+)
+
+const (
+	RespectMask uint16 = 0xf << (4 * iota)
+	StrengthMask
+	ExperienceMask
+	LevelMask
+)
+
+// константы для валидации
+const (
+	MinName           = 0
+	MaxName           = 42
+	MinGold           = 0
+	MaxGold           = 2_000_000_000
+	MinCoord          = -2_000_000_000
+	MaxCoord          = 2_000_000_000
+	MinHealth         = 0
+	MaxHealth         = 1000
+	MinMana           = 0
+	MaxMana           = 1000
+	MinCharacteristic = 0
+	MaxCharacteristic = 10
 )
 
 type Option func(*GamePerson)
 
 func WithName(name string) func(*GamePerson) {
 	return func(person *GamePerson) {
-		if len(name) > 42 {
-			panic("name too long")
+		if len(name) > MaxName {
+			person.name = person.name[:MaxName]
+		} else if len(name) < MinName {
+			person.name = []byte{}
 		}
+
 		person.name = []byte(name)
 	}
 }
 
 func WithCoordinates(x, y, z int) func(*GamePerson) {
 	return func(person *GamePerson) {
+		if x < MinCoord {
+			x = MinCoord
+		} else if x > MaxCoord {
+			x = MaxCoord
+		}
+
+		if y < MinCoord {
+			y = MinCoord
+		} else if y > MaxCoord {
+			y = MaxCoord
+		}
+
+		if z < MinCoord {
+			z = MinCoord
+		} else if z > MaxCoord {
+			z = MaxCoord
+		}
+
 		person.coords[0] = int32(x)
 		person.coords[1] = int32(y)
 		person.coords[2] = int32(z)
@@ -26,79 +89,103 @@ func WithCoordinates(x, y, z int) func(*GamePerson) {
 
 func WithGold(gold int) func(*GamePerson) {
 	return func(person *GamePerson) {
+		if gold < MinGold {
+			gold = MinGold
+		} else if gold > MaxGold {
+			gold = MaxGold
+		}
+
 		person.gold = uint32(gold)
 	}
 }
 
 func WithMana(mana int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		if mana < 0 || mana > 1000 {
-			panic("wrong mana")
+		if mana < MinMana {
+			mana = MinMana
+		} else if mana > MaxMana {
+			mana = MaxMana
 		}
+
 		person.hm[1] = uint16(mana)
 	}
 }
 
 func WithHealth(health int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		if health < 0 || health > 1000 {
-			panic("wrong health")
+		if health < MinHealth {
+			health = MinHealth
+		} else if health > MaxHealth {
+			health = MaxHealth
 		}
+
 		person.hm[0] = uint16(health)
 	}
 }
 
 func WithRespect(respect int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		if respect < 0 || respect > 10 {
-			panic("wrong respect")
+		if respect < MinCharacteristic {
+			respect = MinCharacteristic
+		} else if respect > MaxCharacteristic {
+			respect = MaxCharacteristic
 		}
-		person.characteristics[0] = uint8(respect)
+
+		person.characteristics |= uint16(respect) << RespectOffset
 	}
 }
 
 func WithStrength(strength int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		if strength < 0 || strength > 10 {
-			panic("wrong strength")
+		if strength < MinCharacteristic {
+			strength = MinCharacteristic
+		} else if strength > MaxCharacteristic {
+			strength = MaxCharacteristic
 		}
-		person.characteristics[1] = uint8(strength)
+
+		person.characteristics |= uint16(strength) << StrengthOffset
 	}
 }
 
 func WithExperience(experience int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		if experience < 0 || experience > 10 {
-			panic("wrong experience")
+		if experience < MinCharacteristic {
+			experience = MinCharacteristic
+		} else if experience > MaxCharacteristic {
+			experience = MaxCharacteristic
 		}
-		person.characteristics[2] = uint8(experience)
+
+		person.characteristics |= uint16(experience) << ExperienceOffset
 	}
 }
 
 func WithLevel(level int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		if level < 0 || level > 10 {
-			panic("wrong level")
+		if level < MinCharacteristic {
+			level = MinCharacteristic
+		} else if level > MaxCharacteristic {
+			level = MaxCharacteristic
 		}
-		person.characteristics[3] = uint8(level)
+
+		person.characteristics |= uint16(level) << LevelOffset
 	}
 }
 
 func WithHouse() func(*GamePerson) {
 	return func(person *GamePerson) {
-		person.flags[0] = true
+		person.flags |= HasHouseFlag
 	}
 }
 
 func WithGun() func(*GamePerson) {
 	return func(person *GamePerson) {
-		person.flags[1] = true
+		person.flags |= HasGunFlag
 	}
 }
 
 func WithFamily() func(*GamePerson) {
 	return func(person *GamePerson) {
-		person.flags[2] = true
+		person.flags |= HasFamilyFlag
 	}
 }
 
@@ -112,26 +199,22 @@ func WithType(personType int) func(*GamePerson) {
 		case WarriorGamePersonType:
 			person.personType = WarriorGamePersonType
 		default:
-			panic("unknown person type")
+			person.personType = DefaultPersonType
 		}
 	}
 }
 
-const (
-	BuilderGamePersonType = iota
-	BlacksmithGamePersonType
-	WarriorGamePersonType
-)
-
 type GamePerson struct {
 	gold            uint32
-	coords          [3]int32
-	hm              [2]uint16
-	characteristics [4]uint8
-	personType      uint8 // 0 1 2
-	flags           [3]bool
+	coords          [3]int32  // x | y | z
+	hm              [2]uint16 // health | mana
+	characteristics uint16    // respect | strength | experience | level
+	flags           uint8     // hasHouse | hasGun | hasFamily
+	personType      uint8
 	name            []byte
 }
+
+var _ uintptr = 64 - unsafe.Sizeof(GamePerson{})
 
 func NewGamePerson(options ...Option) GamePerson {
 	person := GamePerson{}
@@ -172,56 +255,33 @@ func (p *GamePerson) Health() int {
 }
 
 func (p *GamePerson) Respect() int {
-	return int(p.characteristics[0])
+	return int(p.characteristics&RespectMask) >> RespectOffset
 }
 
 func (p *GamePerson) Strength() int {
-	return int(p.characteristics[1])
+	return int(p.characteristics&StrengthMask) >> StrengthOffset
 }
 
 func (p *GamePerson) Experience() int {
-	return int(p.characteristics[2])
+	return int(p.characteristics&ExperienceMask) >> ExperienceOffset
 }
 
 func (p *GamePerson) Level() int {
-	return int(p.characteristics[3])
+	return int(p.characteristics&LevelMask) >> LevelOffset
 }
 
 func (p *GamePerson) HasHouse() bool {
-	return p.flags[0]
+	return p.flags&HasHouseFlag != 0
 }
 
 func (p *GamePerson) HasGun() bool {
-	return p.flags[1]
+	return p.flags&HasGunFlag != 0
 }
 
 func (p *GamePerson) HasFamily() bool {
-	return p.flags[2]
+	return p.flags&HasFamilyFlag != 0
 }
 
 func (p *GamePerson) Type() int {
 	return int(p.personType)
-}
-
-func main() {
-	warrior := NewGamePerson(
-		WithName("Vasya"),
-		WithCoordinates(19, 2, 42),
-		WithGold(1000),
-		WithMana(100),
-		WithHealth(100),
-		WithRespect(0),
-		WithStrength(1),
-		WithExperience(10),
-		WithLevel(1),
-		WithHouse(),
-		WithGun(),
-		WithFamily(),
-		WithType(WarriorGamePersonType),
-	)
-
-	fmt.Printf("%+v\n", warrior)
-	fmt.Println(unsafe.Sizeof(warrior))
-	fmt.Println(unsafe.Alignof(warrior))
-	fmt.Printf("%#v\n", (*[56]byte)(unsafe.Pointer(&warrior)))
 }
